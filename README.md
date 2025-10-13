@@ -88,6 +88,49 @@
   - 回归结果表（LaTeX/Excel）与可视化图表。
   - 模型调优与结果变化的记录文档。
 
+### 自动化模型搜索脚本
+
+`model_search.py` 可以帮助你按照“只放主要解释变量 → 逐步加入控制变量 → 单独检验调节项 → （可选）删掉最早年份”的顺序批量运行 OLS 回归，并把每次估计的系数、标准误、p 值和显著性标记保存成 CSV/JSON/Markdown 三种格式。下面按照“准备环境 → 准备数据 → 准备配置 → 运行脚本 → 查看结果”的顺序给出使用步骤：
+
+1. **准备运行环境**
+   - 建议使用 Python 3.9 及以上版本。
+   - 安装依赖：
+     ```bash
+     pip install pandas statsmodels
+     ```
+
+2. **准备数据集（CSV）**
+   - 保证文件第一行是变量名（与配置文件保持一致）。
+   - 如果计划做“删掉最早年份”的实验，需要有一个年份变量，例如 `year`。
+
+3. **准备配置文件（JSON）**
+   - 可以复制 `configs/spec_config_example.json` 并按照自己的变量名修改。
+   - 关键字段说明：
+     | 字段 | 是否必填 | 说明 |
+     | --- | --- | --- |
+     | `dependent` | 是 | 被解释变量名称，例如 `y` |
+     | `main_predictors` | 是 | 主要解释变量列表，例如 `["treat"]` |
+     | `controls` | 否 | 控制变量列表，按列表顺序逐个加入模型 |
+     | `moderators` | 否 | 调节变量列表，脚本会对“主要解释变量 × 调节变量”的交互逐个检验 |
+     | `year_variable` | 否 | 年份变量名称，结合 `drop_earliest_years` 使用 |
+     | `drop_earliest_years` | 否 | 需要剔除的最早年份数量，如 `[0, 1, 2]` 表示不删、删掉最早 1 年、删掉最早 2 年分别跑一次 |
+
+4. **运行脚本**
+   ```bash
+   python model_search.py \
+     --data path/to/your_dataset.csv \
+     --config path/to/your_config.json \
+     --output results/
+   ```
+   - `--output` 目录可以自行指定；若不存在会自动创建。
+   - 运行结束后，终端会提示保存了多少条系数记录。
+
+5. **查看结果**
+   - `regression_search_results.csv` / `regression_search_results.json`：详细系数表。
+   - `regression_search_summary.md`：按模型分组的显著性一览表，✅ 表示对应显著性水平通过。
+
+如需进一步自定义模型（例如更换为固定效应、Logit 等），可以在此脚本的基础上扩展 `run_regression` 函数。
+
 ## 6. 结果解读助手（Insight Narrator）
 - **定位与背景**：
   - 人设：经济学写作高手，熟悉学术论文结构与中文表达，兼具审稿经验。

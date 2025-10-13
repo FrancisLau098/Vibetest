@@ -1,0 +1,8 @@
+{
+  "dependent": "y",
+  "main_predictors": ["x1", "x2"],
+  "controls": ["control1", "control2", "control3"],
+  "moderators": ["moderator1"],
+  "year_variable": "year",
+  "drop_earliest_years": [0, 1, 2]
+}
